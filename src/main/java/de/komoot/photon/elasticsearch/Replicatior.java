@@ -49,8 +49,10 @@ public class Replicatior {
     /**
      * Create a new instance of Replicator
      * 
-     * @param replicationUrl the base URL of where the replication files are stored
+     * @param baseDirectory our local base directory
+     * @param replicationUrlString the base URL of where the replication files are stored
      * @param interval how often should we query the server in minutes
+     * @param updater the Updater to use to process the incoming replication files
      */
     public Replicatior(@Nonnull final File baseDirectory, @Nonnull final String replicationUrlString, int interval, @Nonnull final Updater updater) {
         this.replicationUrlString = replicationUrlString;
