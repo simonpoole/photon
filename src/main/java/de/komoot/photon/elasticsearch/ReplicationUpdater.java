@@ -3,6 +3,7 @@ package de.komoot.photon.elasticsearch;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOError;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
@@ -31,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ReplicationUpdater implements de.komoot.photon.Updater {
+
+    private static final String STATE_FILE_SUFFIX = ".state.json";
 
     public static final String REPLICATION_FORMAT  = "0.0.0";
     
@@ -111,8 +114,9 @@ public class ReplicationUpdater implements de.komoot.photon.Updater {
             saveState(REPLICATION_FORMAT);
             sequenceNumber++;
             actions.clear();
-        } catch (Exception ex) {
-            log.error("Exception writing replication file ", ex);
+        } catch (IOException ioex) {
+            log.error("Exception writing replication file ", ioex);
+            throw new IOError(ioex); // we need to abort here or else updates could be lost
         }
     }
 
@@ -125,13 +129,14 @@ public class ReplicationUpdater implements de.komoot.photon.Updater {
         final ReplicationState state = new ReplicationState(sequenceNumber, replicationFormat, new Date());
         PrintStream outputStream = null;
         try {
-            File newStateFile = formatter.getFormattedName(sequenceNumber, ".state.json");
-            outputStream = new PrintStream(new BufferedOutputStream(new FileOutputStream(newStateFile)));
+            File newStateFile = formatter.getFormattedName(sequenceNumber, STATE_FILE_SUFFIX);
+            outputStream = new PrintStream(new BufferedOutputStream(new FileOutputStream(formatter.getFormattedName(sequenceNumber, STATE_FILE_SUFFIX))));
             outputStream.print(state.toJsonString());
             Files.deleteIfExists(stateFilePath);
             Files.createLink(stateFilePath, newStateFile.toPath());
-        } catch (IOException e) {
-            log.error("Exception writing replication state file ", e);
+        } catch (IOException ioex) {
+            log.error("Exception writing replication state file ", ioex);
+            throw new IOError(ioex);
         } finally {
             if (outputStream != null) {
                 outputStream.close();
