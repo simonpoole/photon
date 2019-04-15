@@ -144,7 +144,7 @@ public class NominatimUpdater {
     }
 
     private List<UpdateRow> getIndexSectorPlaces(Integer rank, Integer geometrySector) {
-        return template.query("select place_id, indexed_status from placex where rank_search = ?" + " and geometry_sector = ? and indexed_status > 0;",
+        return template.query("select place_id, indexed_status, osm_type, osm_id from placex where rank_search = ?" + " and geometry_sector = ? and indexed_status > 0;",
                 new Object[] { rank, geometrySector }, new RowMapper<UpdateRow>() {
                     @Override
                     public UpdateRow mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -153,15 +153,13 @@ public class NominatimUpdater {
                         updateRow.setIndexdStatus(rs.getInt("indexed_status"));
                         updateRow.setOsmType(rs.getString("osm_type"));
                         updateRow.setOsmId(rs.getLong("osm_id"));
-                        updateRow.setOsmKey(rs.getString("osm_key"));
-                        updateRow.setOsmValue(rs.getString("osm_value"));
                         return updateRow;
                     }
                 });
     }
 
     private List<UpdateRow> getIndexSectorInterpolations(Integer geometrySector) {
-        return template.query("select place_id, indexed_status from location_property_osmline where geometry_sector = ? and indexed_status > 0;",
+        return template.query("select place_id, indexed_status, osm_id from location_property_osmline where geometry_sector = ? and indexed_status > 0;",
                 new Object[] { geometrySector }, new RowMapper<UpdateRow>() {
                     @Override
                     public UpdateRow mapRow(ResultSet rs, int rowNum) throws SQLException {
