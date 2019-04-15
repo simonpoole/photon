@@ -25,7 +25,7 @@ import de.komoot.photon.utils.FileSequenceFormatter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Generate replication files from updates, a further updater can be daisy-chained 
+ * Generate replication files from updates, a further updater can be daisy-chained
  * 
  * @author Simon
  *
@@ -35,8 +35,8 @@ public class ReplicationUpdater implements de.komoot.photon.Updater {
 
     private static final String STATE_FILE_SUFFIX = ".state.json";
 
-    public static final String REPLICATION_FORMAT  = "0.0.0";
-    
+    public static final String REPLICATION_FORMAT = "0.0.0";
+
     final de.komoot.photon.Updater otherUpdater;
     final File                     baseDirectory;
     List<PhotonAction>             actions = new ArrayList<>();
@@ -70,7 +70,7 @@ public class ReplicationUpdater implements de.komoot.photon.Updater {
         if (otherUpdater != null) {
             otherUpdater.create(doc);
         }
-        addAction(actions, doc.getPlaceId(), ACTION.CREATE, doc);
+        addAction(actions, doc.getUid(), ACTION.CREATE, doc);
     }
 
     @Override
@@ -78,15 +78,23 @@ public class ReplicationUpdater implements de.komoot.photon.Updater {
         if (otherUpdater != null) {
             otherUpdater.update(doc);
         }
-        addAction(actions, doc.getPlaceId(), ACTION.UPDATE, doc);
+        addAction(actions, doc.getUid(), ACTION.UPDATE, doc);
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(String docId) {
         if (otherUpdater != null) {
-            otherUpdater.delete(id);
+            otherUpdater.delete(docId);
         }
-        addAction(actions, id, ACTION.DELETE, null);
+        addAction(actions, docId, ACTION.DELETE, null);
+    }
+
+    @Override
+    public void delete(String osmType, long osmId, String osmKey, String osmValue) {
+        if (otherUpdater != null) {
+            otherUpdater.delete(osmType, osmId, osmKey, osmValue);
+        }
+        addDeleteOsmAction(actions, osmType, osmId, osmKey, osmValue);
     }
 
     @Override
@@ -94,7 +102,7 @@ public class ReplicationUpdater implements de.komoot.photon.Updater {
         if (otherUpdater != null) {
             otherUpdater.updateOrCreate(updatedDoc);
         }
-        addAction(actions, updatedDoc.getPlaceId(), ACTION.UPDATE_OR_CREATE, updatedDoc);
+        addAction(actions, updatedDoc.getUid(), ACTION.UPDATE_OR_CREATE, updatedDoc);
     }
 
     @Override
@@ -148,16 +156,37 @@ public class ReplicationUpdater implements de.komoot.photon.Updater {
      * Add an action and a PhotonDoc to the list of updates
      * 
      * @param actions the List of PhotonActions
-     * @param placeId the place id for the doc
+     * @param docId the document id for the document
      * @param actionType the action to perform
      * @param doc the PhotonDoc or null if the action is delete
      */
-    private void addAction(@Nonnull List<PhotonAction> actions, long placeId, @Nonnull ACTION actionType, @Nullable PhotonDoc doc) {
+    private void addAction(@Nonnull List<PhotonAction> actions, @Nonnull String docId, @Nonnull ACTION actionType, @Nullable PhotonDoc doc) {
         PhotonAction action;
         action = new PhotonAction();
         action.action = actionType;
-        action.id = placeId;
+        action.id = docId;
         action.doc = doc;
+        actions.add(action);
+    }
+
+    /**
+     * Add an action and a PhotonDoc to the list of updates
+     * 
+     * @param actions the List of PhotonActions
+     * @param osmType the type of OSM element
+     * @param osmId the OSM id of the element
+     * @param osmKey optional tag key
+     * @param osmValue optional tag value
+     */
+    private void addDeleteOsmAction(@Nonnull List<PhotonAction> actions, @Nonnull String osmType, long osmId, @Nullable String osmKey,
+            @Nullable String osmValue) {
+        PhotonAction action;
+        action = new PhotonAction();
+        action.action = ACTION.DELETE_OSM;
+        action.osmType = osmType;
+        action.osmId = osmId;
+        action.osmKey = osmKey;
+        action.osmValue = osmValue;
         actions.add(action);
     }
 }

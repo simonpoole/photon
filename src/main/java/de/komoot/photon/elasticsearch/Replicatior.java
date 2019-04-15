@@ -111,6 +111,10 @@ public class Replicatior {
                             updater.delete(action.id);
                             deletions++;
                             break;
+                        case DELETE_OSM:
+                            updater.delete(action.osmType,action.osmId,action.osmKey,action.osmValue);
+                            deletions++;
+                            break;
                         case CREATE:
                             updater.create(action.doc);
                             updates++;

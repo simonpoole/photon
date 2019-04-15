@@ -10,11 +10,19 @@ import de.komoot.photon.PhotonDoc;
  */
 public class PhotonAction {
 
-    public enum ACTION {CREATE, DELETE, UPDATE, UPDATE_OR_CREATE};
+    public enum ACTION {CREATE, DELETE, DELETE_OSM, UPDATE, UPDATE_OR_CREATE};
     
     public ACTION action;
     
-    public long id;
+    public String id;
     
     public PhotonDoc doc;
+    
+    public String osmType;
+    
+    public long osmId;
+    
+    public String osmKey;
+    
+    public String osmValue;
 }
