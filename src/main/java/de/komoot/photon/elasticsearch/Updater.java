@@ -71,14 +71,15 @@ public class Updater implements de.komoot.photon.Updater {
     
     @Override
     public void delete(String osmType, long osmId, String osmKey, String osmValue) {
-        BoolQueryBuilder query = QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("osm_id", osmId));
+        // note this is executed immediately
+        BoolQueryBuilder query = QueryBuilders.boolQuery().must(QueryBuilders.termQuery("osm_id", osmId));
         if (osmKey != null) {
-            query.must(QueryBuilders.matchQuery("osm__key", osmKey));
+            query.must(QueryBuilders.termQuery("osm_key", osmKey));
             if (osmValue != null) {
-                query.must(QueryBuilders.matchQuery("osm__value", osmValue));
+                query.must(QueryBuilders.termQuery("osm_value", osmValue));
             }
         }
-        query.must(QueryBuilders.matchQuery("_source['osm_type']", osmType));
+        query.must(QueryBuilders.termQuery("osm_type", osmType));
         BulkByScrollResponse response = new DeleteByQueryRequestBuilder(this.esClient, DeleteByQueryAction.INSTANCE)
                 .filter(query).source("photon").get();
         log.info(String.format("deleted %d documents based on osm object", response.getDeleted()));

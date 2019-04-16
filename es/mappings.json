@@ -381,7 +381,8 @@
 				}
 			},
 			"osm_id": {
-				"type": "long"
+				"type": "long",
+				"index": true
 			},
 			"osm_key": {
 				"type": "keyword",
