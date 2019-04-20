@@ -82,7 +82,6 @@ public class Updater implements de.komoot.photon.Updater {
         query.must(QueryBuilders.termQuery("osm_type", osmType));
         BulkByScrollResponse response = new DeleteByQueryRequestBuilder(this.esClient, DeleteByQueryAction.INSTANCE)
                 .filter(query).source("photon").get();
-        log.info(String.format("deleted %d documents based on osm object", response.getDeleted()));
     }
 
     private void updateDocuments() {
